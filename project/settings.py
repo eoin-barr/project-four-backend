@@ -1,3 +1,9 @@
+import os
+from pathlib import Path
+# import django_on_heroku
+from dotenv import load_dotenv
+import dj_database_url
+load_dotenv()
 """
 Django settings for project project.
 
@@ -10,7 +16,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j$2+eo6j+vn9q%n=5k@*u$=@htm^$lt0!*tf7q$ij3*wzs5&o8'
-
+if str(os.getenv('ENVIRONMENT')) == 'development':
+    SECRET_KEY = 'django-insecure-j$2+eo6j+vn9q%n=5k@*u$=@htm^$lt0!*tf7q$ij3*wzs5&o8'
+else:
+    SECRET_KEY = str(os.getenv('SECRET_KEY'))
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True if str(os.getenv('ENVIRONMENT')) == 'development' else False
 
 ALLOWED_HOSTS = []
 
@@ -76,14 +83,26 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'painterest-db',
+#         'HOST': 'localhost',
+#         'PORT': 5432
+#     }
+# }
+
+DATABASES = {}
+if str(os.getenv('ENVIRONMENT')) == 'development':
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'painterest-db',
+        'NAME': 'painterest-db',  # < --- make sure you chage this
         'HOST': 'localhost',
         'PORT': 5432
     }
-}
+else:
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600, ssl_require=True)
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -142,3 +161,5 @@ REST_FRAMEWORK = {
 }
 
 AUTH_USER_MODEL = 'jwt_auth.User'
+
+# django_on_heroku.settings(locals())
